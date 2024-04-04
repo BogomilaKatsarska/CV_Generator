@@ -1,7 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import loader
-
+import pdfkit
+import io
+from django.template import loader
 from pdf.models import Profile
 
 
@@ -33,16 +35,27 @@ def accept(request):
     return render(request, 'pdf/accept.html')
 
 
-def resume(request,id):
+def resume(request, id):
     user_profile = Profile.objects.get(pk=id)
     template = loader.get_template('pdf/resume.html')
-    html = template.render({'user_profile':user_profile})
+    html = template.render({
+        'user_profile': user_profile,
+    })
+
     options ={
-        'page-size':'Letter',
-        'encoding':"UTF-8",
+        'page-size': 'Letter',
+        'encoding': "UTF-8",
     }
-    pdf = pdfkit.from_string(html,False,options)
-    response = HttpResponse(pdf,content_type='application/pdf')
-    response['Content-Disposition'] ='attachment'
+    pdf = pdfkit.from_string(html, False, options)
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment'
     filename = "resume.pdf"
     return response
+
+
+def list(request):
+    profiles = Profile.objects.all()
+    context = {
+        'profiles': profiles,
+    }
+    return render(request, 'pdf/list.html', context)
